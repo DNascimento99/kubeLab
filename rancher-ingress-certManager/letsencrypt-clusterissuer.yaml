@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    # Endereço de e-mail para notificações da Let's Encrypt
+    email: atendimento@o2b.com.br # O e-mail para notificações da Let's Encrypt, como avisos de expiração de certificados.
+    server: https://acme-v02.api.letsencrypt.org/directory #A URL do servidor ACME da Let's Encrypt, usada para emissão de certificados no ambiente de produção.
+    privateKeySecretRef: 
+      name: letsencrypt-prod-key #Nome do segredo Kubernetes onde a chave privada será armazenada.
+    solvers:
+    - http01:
+        ingress:
+          class: nginx # Especifica que o Ingress NGINX será usado para o desafio HTTP01, o qual prova a propriedade do domínio ao Let's Encrypt.

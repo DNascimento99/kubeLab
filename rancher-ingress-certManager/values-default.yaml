@@ -1,0 +1,136 @@
+
+controller:
+  config: 
+    use-forwarded-headers: "true"
+    allow-snippet-annotations: "true"
+    log-format-escape-json: "true"
+    log-format-upstream: '{ "@timestamp": "$time_iso8601", "remote_addr": "$remote_addr",
+      "x-forward-for": "$proxy_add_x_forwarded_for", "request_id": "$req_id", "remote_user":
+      "$remote_user", "bytes_sent": "$bytes_sent", "request_time": "$request_time",
+      "status": "$status", "vhost": "$host", "request_proto": "$server_protocol", "path":
+      "$uri", "request_query": "$args", "request_length": "$request_length", "duration":
+      "$request_time", "method": "$request_method", "http_referrer": "$http_referer",
+      "http_user_agent": "$http_user_agent" }'
+  admissionWebhooks:
+    enabled: false
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 12
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: 
+      scaleDown:
+        stabilizationWindowSeconds: 300
+        policies:
+        - type: Pods
+          value: 1
+          periodSeconds: 180
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
+    controllerValue: "k8s.io/ingress-nginx"
+  ingressClass: nginx
+  tcp:
+    # -- Allows customization of the tcp-services-configmap; defaults to $(POD_NAMESPACE)
+    configMapNamespace: ""
+  udp:
+    # -- Allows customization of the udp-services-configmap; defaults to $(POD_NAMESPACE)
+    configMapNamespace: ""
+  replicaCount: 3
+  resources:
+    limits:
+      cpu: 200m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  # affinity: 
+  #   nodeAffinity:
+  #       requiredDuringSchedulingIgnoredDuringExecution:
+  #         nodeSelectorTerms:
+  #         - matchExpressions:
+  #           - key: nodepool
+  #             operator: In
+  #             values:
+  #             - management
+  #       preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 1
+  #         preference:
+  #           matchExpressions:
+  #           - key: nodepool
+  #             operator: In
+  #             values:
+  #             - management
+  service:
+    type: LoadBalancer
+    externalTrafficPolicy: "Local"
+    external:
+      enabled: true
+      annotations: {}
+    internal:
+      # -- Enables an additional internal load balancer (besides the external one).
+      enabled: false
+      # -- Annotations are mandatory for the load balancer to come up. Varies with the cloud service.
+      annotations: {}
+        # # To AWS (Amazon Web Services)
+        # networking.gke.io/load-balancer-type: "Internal"
+        # networking.gke.io/internal-load-balancer-allow-global-access: "true"
+        # # To OCI (Oracle Infraestructure Cloud)
+        # service.beta.kubernetes.io/oci-load-balancer-internal: "true"
+        # service.beta.kubernetes.io/oci-load-balancer-shape: "flexible"
+        # service.beta.kubernetes.io/oci-load-balancer-shape-flex-min: "10"
+        # service.beta.kubernetes.io/oci-load-balancer-shape-flex-max: "100"
+  stats:
+    enabled: true
+  metrics:
+    port: 10254
+    portName: metrics
+    enabled: true
+    service:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "10254"
+    serviceMonitor:
+      enabled: false
+      additionalLabels: {}
+      namespace: ""
+      namespaceSelector: {}
+      scrapeInterval: 30s
+      targetLabels: []
+      relabelings: []
+      metricRelabelings: []
+
+    prometheusRule:
+      enabled: false
+
+# Opcional
+# defaultBackend:
+#   affinity: 
+#     nodeAffinity:
+#         requiredDuringSchedulingIgnoredDuringExecution:
+#           nodeSelectorTerms:
+#           - matchExpressions:
+#             - key: nodepool
+#               operator: In
+#               values:
+#               - management
+#         preferredDuringSchedulingIgnoredDuringExecution:
+#         - weight: 1
+#           preference:
+#             matchExpressions:
+#             - key: nodepool
+#               operator: In
+#               values:
+#               - management
+#   tolerations:
+#     - effect: NoSchedule
+#       key: cattle.io/os
+#       operator: Equal
+#       value: linux
+#   replicaCount: 3
+#   resources:
+#     limits:
+#       cpu: 50m
+#       memory: 64Mi
